@@ -1,89 +1,104 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Prayer Checkbox Grid</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prayer Tracker Grid</title>
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      direction: ltr;
-    }
-    .container {
-      display: grid;
-      grid-template-columns: auto repeat(5, 1fr);
-      gap: 10px;
-      align-items: center;
-    }
-    .header, .row-label {
-      font-weight: bold;
-      text-align: center;
-    }
-    .cell {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .username-label {
-      font-size: 0.9em;
-      color: #555;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(6, auto); gap: 5px; align-items: center; }
+    .cell { text-align: center; padding: 4px; }
+    .header { font-weight: bold; background-color: #f0f0f0; }
+    input[type="text"] { margin-bottom: 20px; padding: 5px; }
+    .username-label { margin-left: 8px; font-size: 0.9em; color: #333; }
   </style>
 </head>
 <body>
   <h2>Prayer Tracker Grid</h2>
-  <div class="container" id="checkboxGrid"></div>
+  <input type="text" id="usernameInput" placeholder="Enter your name" />
+  <div class="grid" id="prayerGrid"></div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
 
   <script>
-    let username = "";
-    while (!username) {
-      username = prompt("Enter your username:");
-    }
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyByKouizzV5iFQvcHfRMVYEkTPrZps4gjE",
+      authDomain: "prayer-grid-99e63.firebaseapp.com",
+      projectId: "prayer-grid-99e63",
+      storageBucket: "prayer-grid-99e63.firebasestorage.app",
+      messagingSenderId: "643785445837",
+      appId: "1:643785445837:web:5f253ce04399dc8a72b484"
+    };
 
-    const columnNames = ["الفجر", "الظهر", "العصر", "المغرب", "العشاء"];
-    const grid = document.getElementById('checkboxGrid');
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    // Top-left corner placeholder
-    grid.appendChild(document.createElement('div'));
+    const grid = document.getElementById("prayerGrid");
+    const usernameInput = document.getElementById("usernameInput");
 
-    // Add column headers
-    for (let i = 0; i < columnNames.length; i++) {
-      const header = document.createElement('div');
-      header.className = 'header';
-      header.textContent = columnNames[i];
-      grid.appendChild(header);
-    }
+    const columns = ["الفجر", "الظهر", "العصر", "المغرب", "العشاء"];
+    const rows = Array.from({ length: 30 }, (_, i) => i + 1);
 
-    // Populate grid rows
-    for (let r = 1; r <= 30; r++) {
-      const rowLabel = document.createElement('div');
-      rowLabel.className = 'row-label';
-      rowLabel.textContent = r;
-      grid.appendChild(rowLabel);
+    const userName = () => usernameInput.value.trim();
 
-      for (let c = 0; c < columnNames.length; c++) {
-        const cell = document.createElement('div');
-        cell.className = 'cell';
+    function renderGrid() {
+      grid.innerHTML = "";
+      grid.innerHTML += '<div class="cell header"></div>';
+      columns.forEach(col => {
+        grid.innerHTML += `<div class="cell header">${col}</div>`;
+      });
 
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = `cb-${r}-${c}`;
-
-        const label = document.createElement('span');
-        label.className = 'username-label';
-        label.style.display = 'none';
-        label.textContent = username;
-
-        checkbox.addEventListener('change', () => {
-          label.style.display = checkbox.checked ? 'inline' : 'none';
+      rows.forEach(row => {
+        grid.innerHTML += `<div class="cell header">${row}</div>`;
+        columns.forEach((col, colIndex) => {
+          const id = `${row}-${colIndex}`;
+          grid.innerHTML += `<div class="cell"><input type="checkbox" id="${id}"><span class="username-label" id="${id}-label"></span></div>`;
         });
+      });
 
-        cell.appendChild(checkbox);
-        cell.appendChild(label);
-        grid.appendChild(cell);
-      }
+      attachEvents();
     }
+
+    function attachEvents() {
+      rows.forEach(row => {
+        columns.forEach((col, colIndex) => {
+          const id = `${row}-${colIndex}`;
+          const checkbox = document.getElementById(id);
+          const label = document.getElementById(`${id}-label`);
+
+          db.ref(`grid/${id}`).on('value', snapshot => {
+            const value = snapshot.val();
+            if (value) {
+              checkbox.checked = true;
+              label.textContent = `(${value})`;
+            } else {
+              checkbox.checked = false;
+              label.textContent = "";
+            }
+          });
+
+          checkbox.addEventListener("change", () => {
+            if (!userName()) {
+              alert("Please enter your name.");
+              checkbox.checked = false;
+              return;
+            }
+            if (checkbox.checked) {
+              db.ref(`grid/${id}`).set(userName());
+            } else {
+              db.ref(`grid/${id}`).remove();
+            }
+          });
+        });
+      });
+    }
+
+    renderGrid();
   </script>
 </body>
 </html>
