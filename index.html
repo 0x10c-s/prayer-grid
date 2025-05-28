@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prayer Checkbox Grid</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      direction: ltr;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: auto repeat(5, 1fr);
+      gap: 10px;
+      align-items: center;
+    }
+    .header, .row-label {
+      font-weight: bold;
+      text-align: center;
+    }
+    .cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .username-label {
+      font-size: 0.9em;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h2>Prayer Tracker Grid</h2>
+  <div class="container" id="checkboxGrid"></div>
+
+  <script>
+    let username = "";
+    while (!username) {
+      username = prompt("Enter your username:");
+    }
+
+    const columnNames = ["الفجر", "الظهر", "العصر", "المغرب", "العشاء"];
+    const grid = document.getElementById('checkboxGrid');
+
+    // Top-left corner placeholder
+    grid.appendChild(document.createElement('div'));
+
+    // Add column headers
+    for (let i = 0; i < columnNames.length; i++) {
+      const header = document.createElement('div');
+      header.className = 'header';
+      header.textContent = columnNames[i];
+      grid.appendChild(header);
+    }
+
+    // Populate grid rows
+    for (let r = 1; r <= 30; r++) {
+      const rowLabel = document.createElement('div');
+      rowLabel.className = 'row-label';
+      rowLabel.textContent = r;
+      grid.appendChild(rowLabel);
+
+      for (let c = 0; c < columnNames.length; c++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = `cb-${r}-${c}`;
+
+        const label = document.createElement('span');
+        label.className = 'username-label';
+        label.style.display = 'none';
+        label.textContent = username;
+
+        checkbox.addEventListener('change', () => {
+          label.style.display = checkbox.checked ? 'inline' : 'none';
+        });
+
+        cell.appendChild(checkbox);
+        cell.appendChild(label);
+        grid.appendChild(cell);
+      }
+    }
+  </script>
+</body>
+</html>
