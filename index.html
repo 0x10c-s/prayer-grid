@@ -16,7 +16,7 @@
 </head>
 <body>
   <h2>حجز الصلوات</h2>
-  <input type="text" id="usernameInput" placeholder="Enter your name" />
+  <input type="text" id="usernameInput" placeholder="اكتب اسمك" />
   <div class="grid" id="prayerGrid"></div>
 
   <!-- Firebase SDKs -->
@@ -85,7 +85,7 @@
 
             checkbox.addEventListener("change", () => {
               if (!userName()) {
-                alert("Please enter your name.");
+                alert("اكتب اسمك");
                 checkbox.checked = false;
                 return;
               }
